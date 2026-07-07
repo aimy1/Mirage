@@ -62,20 +62,39 @@
 
 ---
 
-## 🚀 一键全局安装
+## 🚀 全局一键安装
 
 Mirage 支持在系统的任何工作目录下启动，并共享全局配置文件：
 *   **Linux / macOS**: `~/.config/mirage/config.toml`
 *   **Windows**: `%APPDATA%\mirage\config.toml`
 
-### 1. 从源码安装
+### ⚡ 方式 A: 一键脚本自动安装 (推荐)
+
+我们在项目根目录下内置了全自动配置脚本，会自动为您安装系统音频依赖、配置 Rust 工具链、编译并添加环境变量：
+
+*   **Linux 平台**:
+    在项目根目录下打开终端并运行：
+    ```bash
+    chmod +x install.sh && ./install.sh
+    ```
+*   **Windows 平台**:
+    在管理员模式的 PowerShell 中切换到项目目录并运行：
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\install.ps1
+    ```
+
+---
+
+### 📦 方式 B: 手动逐步安装
+
+#### 1. 从源码编译安装
 在下载的项目根目录下运行：
 ```bash
 cargo install --path .
 ```
-这会把构建完成的二进制文件 `mirage` 拷贝至您的 Cargo 二进制安装目录。
+这会把构建完成的二进制文件 `mirage` 拷贝至您的 Cargo 二进制安装目录（`~/.cargo/bin`）。
 
-### 2. 检查环境变量
+#### 2. 检查环境变量 `PATH`
 请确保 Cargo 二进制目录已追加到系统 `PATH` 环境变量中。
 
 *   **Linux / macOS**:
@@ -84,7 +103,7 @@ cargo install --path .
     export PATH="$HOME/.cargo/bin:$PATH"
     ```
 *   **Windows**:
-    Rust 安装时通常已为您自动配置好 `%USERPROFILE%\.cargo\bin` 环境变量。
+    安装 Rust 时通常已为您自动配置好环境变量。
 
 配置完成后，您可以在系统的任意路径下通过终端运行以下命令即刻启动：
 ```bash
