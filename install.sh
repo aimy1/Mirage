@@ -24,11 +24,7 @@ fi
 echo "Testing connection speed to official Rust servers..."
 USE_MIRROR=false
 
-TIME_STR=$(curl -o /dev/null -s -m 2.5 -w "%{time_total}" https://static.rust-lang.org/dist/channel-rust-stable.toml || echo "9.9")
-
-if [ "$TIME_STR" = "9.9" ]; then
-    USE_MIRROR=true
-else
+if TIME_STR=$(curl -o /dev/null -s -f -m 2.5 -w "%{time_total}" https://static.rust-lang.org/dist/channel-rust-stable.toml); then
     # 提取纯数字，比如 0.850 -> 850
     MS=$(echo "$TIME_STR" | tr -d '.' | sed 's/^0*//')
     if [ -z "$MS" ]; then
@@ -37,6 +33,9 @@ else
     if [ "$MS" -gt 800 ]; then
         USE_MIRROR=true
     fi
+else
+    TIME_STR="9.9"
+    USE_MIRROR=true
 fi
 
 if [ "$USE_MIRROR" = true ]; then
