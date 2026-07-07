@@ -23,6 +23,7 @@ fi
 # 智能测速：拉取 300 字节的 stable 配置文件。如果耗时超过 0.8 秒或连接超时，说明下载大文件会极慢，自动启用镜像。
 echo "Testing connection speed to official Rust servers..."
 USE_MIRROR=false
+CONN_FAILED=false
 
 if TIME_STR=$(curl -o /dev/null -s -f -m 2.5 -w "%{time_total}" https://static.rust-lang.org/dist/channel-rust-stable.toml); then
     # 提取纯数字，比如 0.850 -> 850
@@ -36,6 +37,21 @@ if TIME_STR=$(curl -o /dev/null -s -f -m 2.5 -w "%{time_total}" https://static.r
 else
     TIME_STR="9.9"
     USE_MIRROR=true
+    
+    # 进一步探测镜像服务器连通性，若全都失败说明可能缺少代理
+    if ! curl -o /dev/null -s -f -m 2.5 https://rsproxy.cn &> /dev/null; then
+        CONN_FAILED=true
+    fi
+fi
+
+if [ "$CONN_FAILED" = true ]; then
+    echo -e "\033[1;31m[WARNING] All connection tests timed out. Your machine might be offline or behind a restrictive firewall.\033[0m"
+    if [ -z "$https_proxy" ] && [ -z "$http_proxy" ]; then
+        echo -e "\033[1;33mIf you need a proxy to access external networks, please configure it in your terminal:\033[0m"
+        echo -e "   export https_proxy=\"http://YOUR_PROXY_IP:PORT\""
+        echo -e "   export http_proxy=\"http://YOUR_PROXY_IP:PORT\""
+        echo ""
+    fi
 fi
 
 if [ "$USE_MIRROR" = true ]; then
@@ -46,7 +62,15 @@ fi
 
 if ! command -v cargo &> /dev/null; then
     echo "Rust/Cargo not found. Installing via rustup..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    
+    # 如果用户没有配置代理且连接失败，提醒他们
+    if ! curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
+        echo -e "\033[1;31mError: rustup installation failed.\033[0m"
+        if [ "$CONN_FAILED" = true ]; then
+            echo -e "\033[1;33mPlease configure a valid terminal proxy (HTTP/HTTPS) or verify your internet connection.\033[0m"
+        fi
+        exit 1
+    fi
     # 将当前的 Cargo 路径写入会话环境
     source "$HOME/.cargo/env"
 else
