@@ -1,0 +1,33 @@
+# Mirage TUI Audio Visualizer Configuration
+
+[visualizer]
+# Available modes: "bars", "waveform", "circle", "spectrogram", "lissajous", "vu_meter"
+mode = "bars"
+# Target frames per second
+fps = 60
+# Number of frequency bins/bars (0 for auto-fit to terminal width)
+bar_count = 0
+# Input sensitivity multiplier (e.g. 1.0, 1.5, 2.0)
+sensitivity = 1.0
+# Show/hide side panel
+show_side_panel = true
+
+[audio]
+# Device name ("default" or exact name from device list)
+device = "default"
+# Source type: "loopback" (captures system audio output) or "mic" (captures microphone input)
+source = "loopback"
+
+[theme]
+# Built-in themes: "catppuccin", "tokyo_night", "gruvbox", "nord", "dracula", "everforest"
+name = "tokyo_night"
+
+[physics]
+# Fallback smoothing factor (0.0 to 1.0, lower means slower release)
+smoothing = 0.7
+# Spring animation constant k (stiffness, higher = faster response)
+spring_k = 15.0
+# Spring animation damping coefficient (friction, higher = less oscillation)
+spring_damping = 1.8
+# Gravity for peak hold indicators (lower = peaks drop slower)
+gravity = 1.5

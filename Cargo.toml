@@ -1,0 +1,15 @@
+[package]
+name = "mirage"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ratatui = "0.26"
+crossterm = { version = "0.27", features = ["event-stream"] }
+cpal = "0.15"
+realfft = "3.3"
+crossbeam-channel = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+notify = "6.1.1"
+sysinfo = "0.30"
