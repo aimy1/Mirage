@@ -20,6 +20,16 @@ else
 fi
 
 # 2. 检查并安装 Rust/Cargo 编译链
+# 自动检测官方连接速度，如超时则自动启用国内源加速
+echo "Testing connection to official Rust servers..."
+USE_MIRROR=false
+if ! curl -s -I -m 4 https://static.rust-lang.org &> /dev/null; then
+    echo -e "\033[0;33mOfficial Rust server is unreachable or slow. Enabling Rsproxy mirror for fast download...\033[0m"
+    USE_MIRROR=true
+    export RUSTUP_DIST_SERVER="https://rsproxy.cn"
+    export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"
+fi
+
 if ! command -v cargo &> /dev/null; then
     echo "Rust/Cargo not found. Installing via rustup..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -29,7 +39,40 @@ else
     echo "Rust environment detected: $(cargo --version)"
 fi
 
-# 3. 编译并安装 Mirage
+# 3. 配置 Cargo 的 Crates 镜像以加速依赖包下载
+if [ "$USE_MIRROR" = true ]; then
+    echo "Setting up high-speed Cargo registry mirror (Rsproxy)..."
+    mkdir -p "$HOME/.cargo"
+    CARGO_CONFIG="$HOME/.cargo/config.toml"
+    
+    # 如果用户的 config.toml 里还没配过镜像，我们就写入
+    if [ ! -f "$CARGO_CONFIG" ] || ! grep -q "rsproxy" "$CARGO_CONFIG"; then
+        # 备份已有的配置
+        if [ -f "$CARGO_CONFIG" ]; then
+            cp "$CARGO_CONFIG" "${CARGO_CONFIG}.bak"
+        fi
+        
+        cat << 'EOF' > "$CARGO_CONFIG"
+[source.crates-io]
+replace-with = 'rsproxy'
+
+[source.rsproxy]
+registry = "https://rsproxy.cn/crates.io-index"
+
+[source.rsproxy-sparse]
+registry = "sparse+https://rsproxy.cn/index/"
+
+[registries.rsproxy]
+index = "https://rsproxy.cn/crates.io-index"
+
+[net]
+git-fetch-with-cli = true
+EOF
+        echo "Cargo registry mirror configured successfully."
+    fi
+fi
+
+# 4. 编译并安装 Mirage
 echo -e "\033[0;32mBuilding and installing Mirage...\033[0m"
 cargo install --path .
 
