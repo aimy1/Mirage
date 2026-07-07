@@ -20,12 +20,27 @@ else
 fi
 
 # 2. 检查并安装 Rust/Cargo 编译链
-# 自动检测官方连接速度，如超时则自动启用国内源加速
-echo "Testing connection to official Rust servers..."
+# 智能测速：拉取 300 字节的 stable 配置文件。如果耗时超过 0.8 秒或连接超时，说明下载大文件会极慢，自动启用镜像。
+echo "Testing connection speed to official Rust servers..."
 USE_MIRROR=false
-if ! curl -s -I -m 4 https://static.rust-lang.org &> /dev/null; then
-    echo -e "\033[0;33mOfficial Rust server is unreachable or slow. Enabling Rsproxy mirror for fast download...\033[0m"
+
+TIME_STR=$(curl -o /dev/null -s -m 2.5 -w "%{time_total}" https://static.rust-lang.org/dist/channel-rust-stable.toml || echo "9.9")
+
+if [ "$TIME_STR" = "9.9" ]; then
     USE_MIRROR=true
+else
+    # 提取纯数字，比如 0.850 -> 850
+    MS=$(echo "$TIME_STR" | tr -d '.' | sed 's/^0*//')
+    if [ -z "$MS" ]; then
+        MS=999
+    fi
+    if [ "$MS" -gt 800 ]; then
+        USE_MIRROR=true
+    fi
+fi
+
+if [ "$USE_MIRROR" = true ]; then
+    echo -e "\033[0;33mOfficial Rust server is slow (response time: ${TIME_STR}s). Enabling Rsproxy mirror for fast download...\033[0m"
     export RUSTUP_DIST_SERVER="https://rsproxy.cn"
     export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"
 fi
