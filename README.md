@@ -43,6 +43,28 @@
 
 ---
 
+## 📥 获取与下载项目 (Get Mirage)
+
+在开始安装编译之前，请先通过以下方式之一将源码拉取到您的本地机器上：
+
+### 📁 方式 A: 通过 Git 命令行下载 (推荐)
+如果您已安装 `git`，可在终端直接克隆项目：
+```bash
+git clone https://github.com/aimy1/Mirage.git
+cd Mirage
+```
+
+### 📦 方式 B: 下载 ZIP 压缩包 (适合未安装 Git 的环境)
+*   **Linux / macOS 终端**:
+    ```bash
+    wget https://github.com/aimy1/Mirage/archive/refs/heads/main.zip
+    unzip main.zip && cd Mirage-main
+    ```
+*   **Windows 平台**:
+    直接在浏览器中访问本仓库主页，点击 **Code** ➟ **Download ZIP**。下载完成后解压并进入文件夹即可。
+
+---
+
 ## 🛠️ Linux 系统编译依赖
 
 在 Linux 系统上编译 Mirage 需要连接系统的 ALSA 开发包，请在编译前通过您的包管理器安装：
