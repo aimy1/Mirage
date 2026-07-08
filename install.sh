@@ -7,14 +7,26 @@ echo -e "\033[0;33mChecking system environment and installing dependencies...\03
 
 # 1. 检测包管理器并安装 ALSA 编译依赖
 if command -v apt-get &> /dev/null; then
-    echo "Detected Debian/Ubuntu base system. Installing libasound2-dev..."
-    sudo apt-get update && sudo apt-get install -y libasound2-dev build-essential
+    if ! dpkg -l | grep -q "^ii  libasound2-dev" || ! dpkg -l | grep -q "^ii  build-essential" &> /dev/null; then
+        echo "Detected Debian/Ubuntu base system. Installing libasound2-dev and build-essential..."
+        sudo apt-get update && sudo apt-get install -y libasound2-dev build-essential
+    else
+        echo "Dependencies (libasound2-dev, build-essential) are already installed."
+    fi
 elif command -v dnf &> /dev/null; then
-    echo "Detected Fedora/RHEL base system. Installing alsa-lib-devel..."
-    sudo dnf install -y alsa-lib-devel gcc
+    if ! rpm -q alsa-lib-devel gcc &> /dev/null; then
+        echo "Detected Fedora/RHEL base system. Installing alsa-lib-devel..."
+        sudo dnf install -y alsa-lib-devel gcc
+    else
+        echo "Dependencies (alsa-lib-devel, gcc) are already installed."
+    fi
 elif command -v pacman &> /dev/null; then
-    echo "Detected Arch Linux base system. Installing alsa-lib..."
-    sudo pacman -S --noconfirm alsa-lib base-devel
+    if ! pacman -Qi alsa-lib &> /dev/null || ! pacman -Qi base-devel &> /dev/null; then
+        echo "Detected Arch Linux base system. Installing alsa-lib..."
+        sudo pacman -S --noconfirm alsa-lib base-devel
+    else
+        echo "Dependencies (alsa-lib, base-devel) are already installed."
+    fi
 else
     echo -e "\033[0;31mWarning: Unknown package manager. Please ensure ALSA development libraries and build-essential are installed.\033[0m"
 fi

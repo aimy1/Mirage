@@ -91,10 +91,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     _ => "bars",
                                 };
                                 app.config.visualizer.mode = next_mode.to_string();
-                                // 保存新配置到 config.toml
-                                if let Ok(toml_str) = toml::to_string_pretty(&app.config) {
-                                    let _ = std::fs::write("config.toml", toml_str);
-                                }
+                                // 保存新配置到全局配置文件
+                                app.save_config();
                             }
                             KeyCode::Char('t') | KeyCode::Char('T') => {
                                 app.open_theme_select();
@@ -111,18 +109,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 };
                                 app.config.audio.source = next_source.to_string();
                                 app.restart_audio();
-                                // 保存新配置
-                                if let Ok(toml_str) = toml::to_string_pretty(&app.config) {
-                                    let _ = std::fs::write("config.toml", toml_str);
-                                }
+                                // 保存新配置到全局配置文件
+                                app.save_config();
                             }
                             KeyCode::Char('p') | KeyCode::Char('P') => {
                                 // 切换侧边栏
                                 app.config.visualizer.show_side_panel = !app.config.visualizer.show_side_panel;
-                                // 保存配置
-                                if let Ok(toml_str) = toml::to_string_pretty(&app.config) {
-                                    let _ = std::fs::write("config.toml", toml_str);
-                                }
+                                // 保存配置到全局配置文件
+                                app.save_config();
                             }
                             KeyCode::F(1) => {
                                 app.show_help = true;

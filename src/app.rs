@@ -523,4 +523,11 @@ impl App {
         self.show_device_select = false;
         self.show_theme_select = false;
     }
+
+    /// 保存当前配置至全局配置文件
+    pub fn save_config(&self) {
+        if let Ok(toml_str) = toml::to_string_pretty(&self.config) {
+            let _ = std::fs::write(&self.config_path, toml_str);
+        }
+    }
 }
