@@ -17,6 +17,52 @@ mod ui;
 use app::App;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 解析命令行参数 (对标 cava)
+    let args: Vec<String> = std::env::args().collect();
+    let mut custom_config_path = None;
+
+    let mut idx = 1;
+    while idx < args.len() {
+        match args[idx].as_str() {
+            "-h" | "--help" => {
+                println!("Mirage - Next-Generation TUI Audio Visualizer");
+                println!();
+                println!("Usage: mirage [OPTIONS]");
+                println!();
+                println!("Options:");
+                println!("  -p, -c, --config <PATH>  Use custom configuration file");
+                println!("  -v, --version            Print version info");
+                println!("  -h, --help               Show this help message");
+                println!();
+                println!("Interactive Shortcuts:");
+                println!("  Tab         Cycle through visualizer modes");
+                println!("  t / T       Open theme selection menu");
+                println!("  d / D       Open audio device selection menu");
+                println!("  Esc / q / Q Exit application");
+                return Ok(());
+            }
+            "-v" | "--version" => {
+                println!("Mirage v{}", env!("CARGO_PKG_VERSION"));
+                return Ok(());
+            }
+            "-p" | "-c" | "--config" => {
+                if idx + 1 < args.len() {
+                    custom_config_path = Some(std::path::PathBuf::from(&args[idx + 1]));
+                    idx += 1;
+                } else {
+                    eprintln!("Error: config option requires a path argument");
+                    std::process::exit(1);
+                }
+            }
+            _ => {
+                eprintln!("Error: Unknown option '{}'", args[idx]);
+                eprintln!("Run 'mirage --help' for usage instructions.");
+                std::process::exit(1);
+            }
+        }
+        idx += 1;
+    }
+
     // 1. 设置 Panic 钩子以确保崩溃时能够干净地恢复终端状态
     let default_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
@@ -33,8 +79,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // 3. 创建 App 状态 (指向全局平台配置)
-    let config_path = config::get_config_path();
+    // 3. 创建 App 状态 (指向全局平台或自定义配置)
+    let config_path = custom_config_path.unwrap_or_else(config::get_config_path);
     let mut app = App::new(config_path);
 
     // 4. 渲染主循环，目标 60 FPS
@@ -59,6 +105,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Event::Key(key) = event::read()? {
                 // Windows 平台要严格限定只处理 Press 事件，避免触发 Release 重复响应
                 if key.kind == KeyEventKind::Press {
+                    // 支持 Ctrl+C 直接退出 (对标 cava)
+                    if key.code == KeyCode::Char('c') && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+                        break;
+                    }
+
                     // 如果有弹窗处于打开状态，由弹窗接管部分按键
                     if app.show_device_select || app.show_theme_select {
                         match key.code {
@@ -77,8 +128,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     } else {
                         // 正常全局快捷键处理
                         match key.code {
-                            KeyCode::Char('q') | KeyCode::Char('Q') => {
-                                break; // 退出程序
+                            KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
+                                break; // 退出程序 (支持 q/Q 和 Esc 退出)
                             }
                             KeyCode::Tab => {
                                 // 轮转可视化模式
