@@ -77,7 +77,7 @@ impl App {
         let mut audio_engine = AudioEngine::new();
 
         // 尝试启动默认设备音频流
-        let _ = audio_engine.start(&config.audio.device, &config.audio.source, audio_tx.clone());
+        let _ = audio_engine.start(&config.audio.device, audio_tx.clone());
 
         // 初始化 DSP 处理器，FFT 长度 2048，自适应初始 bars = 64
         let mut dsp = DspProcessor::new(2048, config.visualizer.bar_count);
@@ -227,11 +227,9 @@ impl App {
         }
     }
 
-    /// 重启音频捕获设备/源
     pub fn restart_audio(&mut self) {
         let _ = self.audio_engine.start(
             &self.config.audio.device,
-            &self.config.audio.source,
             self.audio_tx.clone()
         );
         // 清空以前的旧采样缓冲，防止突变
@@ -240,10 +238,8 @@ impl App {
         self.mono_channel_ring = VecDeque::from(vec![0.0; 2048]);
     }
 
-    /// 应用修改后的配置并重置部分依赖模块
     pub fn apply_new_config(&mut self, new_config: Config) {
         let old_device = self.config.audio.device.clone();
-        let old_source = self.config.audio.source.clone();
 
         self.config = new_config;
         
@@ -260,7 +256,7 @@ impl App {
         self.theme = Theme::from_name(&self.config.theme.name);
 
         // 3. 判断是否需要重启音频流 (设备或源变更)
-        if self.config.audio.device != old_device || self.config.audio.source != old_source {
+        if self.config.audio.device != old_device {
             self.restart_audio();
         }
     }

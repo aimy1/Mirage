@@ -33,7 +33,6 @@ pub struct VisualizerConfig {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AudioConfig {
     pub device: String,
-    pub source: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -69,7 +68,6 @@ impl Default for Config {
             },
             audio: AudioConfig {
                 device: "default".to_string(),
-                source: "loopback".to_string(),
             },
             theme: ThemeConfig {
                 name: "tokyo_night".to_string(),

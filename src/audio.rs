@@ -66,18 +66,17 @@ impl AudioEngine {
         devices
     }
 
-    /// 启动音频流捕获
+    /// 启动音频流捕获 (只保留 Loopback 系统声音捕获)
     pub fn start(
         &mut self,
         device_name: &str,
-        source_type: &str, // "loopback" 或 "mic"
         tx: Sender<f32>,
     ) -> Result<(), String> {
         // 停止之前的流
         self.stream = None;
 
-        let is_loopback = source_type == "loopback";
-        let search_output = is_loopback && USE_OUTPUT_DEVICE_FOR_LOOPBACK;
+        let is_loopback = true;
+        let search_output = USE_OUTPUT_DEVICE_FOR_LOOPBACK;
         
         // 1. 选择设备
         let device = if device_name == "default" {

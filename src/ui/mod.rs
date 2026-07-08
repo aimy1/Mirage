@@ -123,18 +123,6 @@ fn draw_help_popup(f: &mut Frame, area: Rect, theme: &Theme) {
             Span::styled("Open Audio Device Selection Menu", Style::default().fg(theme.fg)),
         ]),
         Line::from(vec![
-            Span::styled("   S   ", Style::default().fg(theme.accent3).bold()),
-            Span::styled("Switch Input Source (Loopback / Microphone)", Style::default().fg(theme.fg)),
-        ]),
-        Line::from(vec![
-            Span::styled("   1   ", Style::default().fg(theme.accent3).bold()),
-            Span::styled("Directly Select System Audio (Loopback)", Style::default().fg(theme.fg)),
-        ]),
-        Line::from(vec![
-            Span::styled("   2   ", Style::default().fg(theme.accent3).bold()),
-            Span::styled("Directly Select Microphone (Mic)", Style::default().fg(theme.fg)),
-        ]),
-        Line::from(vec![
             Span::styled("  Esc  ", Style::default().fg(theme.accent3).bold()),
             Span::styled("Close popup menus", Style::default().fg(theme.fg)),
         ]),

@@ -100,34 +100,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             KeyCode::Char('d') | KeyCode::Char('D') => {
                                 app.open_device_select();
                             }
-                            KeyCode::Char('s') | KeyCode::Char('S') => {
-                                // 切换音频源
-                                let next_source = if app.config.audio.source == "loopback" {
-                                    "mic"
-                                } else {
-                                    "loopback"
-                                };
-                                app.config.audio.source = next_source.to_string();
-                                app.restart_audio();
-                                // 保存新配置到全局配置文件
-                                app.save_config();
-                            }
-                            KeyCode::Char('1') => {
-                                // 直接切换到系统声音 (Loopback)
-                                if app.config.audio.source != "loopback" {
-                                    app.config.audio.source = "loopback".to_string();
-                                    app.restart_audio();
-                                    app.save_config();
-                                }
-                            }
-                            KeyCode::Char('2') => {
-                                // 直接切换到麦克风 (Mic)
-                                if app.config.audio.source != "mic" {
-                                    app.config.audio.source = "mic".to_string();
-                                    app.restart_audio();
-                                    app.save_config();
-                                }
-                            }
                             KeyCode::Char('p') | KeyCode::Char('P') => {
                                 // 切换侧边栏
                                 app.config.visualizer.show_side_panel = !app.config.visualizer.show_side_panel;
