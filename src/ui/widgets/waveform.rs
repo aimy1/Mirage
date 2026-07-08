@@ -31,23 +31,52 @@ impl<'a> Widget for WaveformWidget<'a> {
         // 创建像素点亮网格
         let mut grid = vec![false; pixel_w * pixel_h];
 
-        // 将时域数据映射到像素网格
-        // 我们需要对 samples 进行重采样或插值，以使其刚好包含 pixel_w 个采样点
+        // 计算所有采样点的像素 Y 坐标并保存
+        let mut points = Vec::with_capacity(pixel_w);
         for px in 0..pixel_w {
             let sample_idx = (px as f32 / pixel_w as f32 * self.samples.len() as f32) as usize;
             if sample_idx >= self.samples.len() {
                 break;
             }
-            
-            // 采样的值通常在 -1.0 到 1.0 之间
             let sample_val = self.samples[sample_idx];
             
             // 归一化 Y 坐标，0.0 在最顶部，1.0 在最底部
             let norm_y = (1.0 - sample_val) / 2.0;
             let py = (norm_y * (pixel_h - 1) as f32).round() as usize;
             let py = py.clamp(0, pixel_h - 1);
+            points.push((px, py));
+        }
 
-            grid[py * pixel_w + px] = true;
+        // 用 Bresenham 直线算法连接所有相邻的采样点，形成平滑的示波器线条
+        for i in 0..points.len().saturating_sub(1) {
+            let (x0, y0) = points[i];
+            let (x1, y1) = points[i + 1];
+
+            let dx = (x1 as i32 - x0 as i32).abs();
+            let dy = (y1 as i32 - y0 as i32).abs();
+            let sx = if x0 < x1 { 1 } else { -1 };
+            let sy = if y0 < y1 { 1 } else { -1 };
+            let mut err = dx - dy;
+            let mut x = x0 as i32;
+            let mut y = y0 as i32;
+
+            loop {
+                if x >= 0 && x < pixel_w as i32 && y >= 0 && y < pixel_h as i32 {
+                    grid[(y as usize) * pixel_w + (x as usize)] = true;
+                }
+                if x == x1 as i32 && y == y1 as i32 {
+                    break;
+                }
+                let e2 = 2 * err;
+                if e2 > -dy {
+                    err -= dy;
+                    x += sx;
+                }
+                if e2 < dx {
+                    err += dx;
+                    y += sy;
+                }
+            }
         }
 
         // 把 2x4 的像素块拼接为 Braille 字符并写入 Buffer

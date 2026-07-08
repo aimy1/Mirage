@@ -43,6 +43,7 @@ impl<'a> Widget for LissajousWidget<'a> {
         let num_points = self.left_samples.len().min(self.right_samples.len()).min(400);
         let start_idx = self.left_samples.len().min(self.right_samples.len()) - num_points;
 
+        let mut points = Vec::with_capacity(num_points);
         for i in 0..num_points {
             let idx = start_idx + i;
             let l_val = self.left_samples[idx];
@@ -59,7 +60,39 @@ impl<'a> Widget for LissajousWidget<'a> {
             let px = px.clamp(0, pixel_w - 1);
             let py = py.clamp(0, pixel_h - 1);
 
-            grid[py * pixel_w + px] = true;
+            points.push((px, py));
+        }
+
+        // 用 Bresenham 算法绘制连续的相位轨迹线，模拟真实的模拟矢量示波器
+        for i in 0..points.len().saturating_sub(1) {
+            let (x0, y0) = points[i];
+            let (x1, y1) = points[i + 1];
+
+            let dx = (x1 as i32 - x0 as i32).abs();
+            let dy = (y1 as i32 - y0 as i32).abs();
+            let sx = if x0 < x1 { 1 } else { -1 };
+            let sy = if y0 < y1 { 1 } else { -1 };
+            let mut err = dx - dy;
+            let mut x = x0 as i32;
+            let mut y = y0 as i32;
+
+            loop {
+                if x >= 0 && x < pixel_w as i32 && y >= 0 && y < pixel_h as i32 {
+                    grid[(y as usize) * pixel_w + (x as usize)] = true;
+                }
+                if x == x1 as i32 && y == y1 as i32 {
+                    break;
+                }
+                let e2 = 2 * err;
+                if e2 > -dy {
+                    err -= dy;
+                    x += sx;
+                }
+                if e2 < dx {
+                    err += dx;
+                    y += sy;
+                }
+            }
         }
 
         // 渲染盲文
