@@ -25,8 +25,8 @@ get_delay_ms() {
     local url=$1
     local time_str
     if time_str=$(curl -o /dev/null -s -f -m 2.0 -w "%{time_total}" "$url"); then
-        # 0.123 -> 123 毫秒
-        local ms=$(echo "$time_str" | tr -d '.' | sed 's/^0*//')
+        time_str=$(echo "$time_str" | tr ',' '.')
+        local ms=$(awk -v t="$time_str" 'BEGIN { printf "%d\n", t * 1000 }')
         if [ -n "$ms" ]; then
             echo "$ms"
             return
@@ -139,16 +139,10 @@ if [ "$USE_MIRROR" = true ]; then
             echo "Setting up high-speed Cargo registry mirror: Rsproxy..."
             cat << 'EOF' > "$CARGO_CONFIG"
 [source.crates-io]
-replace-with = 'rsproxy'
-
-[source.rsproxy]
-registry = "https://rsproxy.cn/crates.io-index"
+replace-with = 'rsproxy-sparse'
 
 [source.rsproxy-sparse]
 registry = "sparse+https://rsproxy.cn/index/"
-
-[registries.rsproxy]
-index = "https://rsproxy.cn/crates.io-index"
 
 [net]
 git-fetch-with-cli = true
@@ -157,10 +151,7 @@ EOF
             echo "Setting up high-speed Cargo registry mirror: Tsinghua TUNA..."
             cat << 'EOF' > "$CARGO_CONFIG"
 [source.crates-io]
-replace-with = 'tuna'
-
-[source.tuna]
-registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
+replace-with = 'tuna-sparse'
 
 [source.tuna-sparse]
 registry = "sparse+https://mirrors.tuna.tsinghua.edu.cn/rust-crates-adapter/crates.io-index/"
